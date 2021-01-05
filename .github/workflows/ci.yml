@@ -36,7 +36,7 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.elixir-version }}-${{ matrix.otp-version}}-mix-${{ hashFiles('**/mix.lock') }}
         restore-keys: ${{ runner.os }}-${{ matrix.elixir-version}}-${{ matrix.otp-version }}-mix-
     - name: Start EPMD
-      run: epmd -d
+      run: epmd -daemon
     - name: Install dependencies
       run: mix deps.get
     - name: Run tests
