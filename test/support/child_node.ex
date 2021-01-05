@@ -65,7 +65,7 @@ defmodule ChildNode do
   @spec start_link(Application.t(), atom, params) :: {:ok, pid} | {:error, any}
   def start_link(app_to_start, node_name, params \\ [], timeout \\ 5_000) do
     unless Node.alive?() do
-      Node.start(:"local@0.0.0.0")
+      {:ok, _} = Node.start(:"local@0.0.0.0")
     end
 
     code_paths = Enum.join(:code.get_path(), " ")
