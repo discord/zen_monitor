@@ -45,7 +45,7 @@ defmodule TruncatorTest do
 
     test "equal to limit should pass through" do
       input = String.duplicate("a", 1024)
-      assert input = Truncator.truncate(input)
+      assert input == Truncator.truncate(input)
     end
 
     test "greater than limit should be truncated" do
