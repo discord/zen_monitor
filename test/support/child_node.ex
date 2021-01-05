@@ -65,7 +65,7 @@ defmodule ChildNode do
   @spec start_link(Application.t(), atom, params) :: {:ok, pid} | {:error, any}
   def start_link(app_to_start, node_name, params \\ [], timeout \\ 5_000) do
     unless Node.alive?() do
-      Node.start(:"local@127.0.0.1")
+      Node.start(:"local@0.0.0.0")
     end
 
     code_paths = Enum.join(:code.get_path(), " ")
@@ -87,7 +87,7 @@ defmodule ChildNode do
       |> String.to_charlist()
 
     node_name = to_node_name(node_name)
-    {:ok, node_name} = :slave.start_link('127.0.0.1', node_name, node_start_args)
+    {:ok, node_name} = :slave.start_link('0.0.0.0', node_name, node_start_args)
 
     on_start = params[:on_start]
     rpc_args = [node_name, app_to_start, on_start, self()]
