@@ -80,9 +80,9 @@ defmodule ZenMonitor.Local.Connector do
         operation, it is simple to track it as elements are added / removed)
     """
     @type t :: %__MODULE__{
-            monitors: :ets.tid(),
+            monitors: :ets.tab(),
             remote_node_monitored: boolean(),
-            remote_proxy_ref: reference(),
+            remote_proxy_ref: reference() | nil,
             remote: node(),
             length: integer(),
             batch: :queue.queue()
@@ -581,7 +581,7 @@ defmodule ZenMonitor.Local.Connector do
 
   @spec messages_for_death_certificates(
           death_certificates :: [death_certificate],
-          monitors :: :ets.tid()
+          monitors :: :ets.tab()
         ) :: [down_dispatch]
   defp messages_for_death_certificates(death_certificates, monitors) do
     do_messages_for_death_certificates(death_certificates, monitors, [])
@@ -589,9 +589,9 @@ defmodule ZenMonitor.Local.Connector do
 
   @spec do_messages_for_death_certificates(
           death_certificates :: [death_certificate],
-          monitors :: :ets.tid(),
+          monitors :: :ets.tab(),
           acc :: [down_dispatch]
-        ) :: down_dispatch
+        ) :: [down_dispatch]
   defp do_messages_for_death_certificates([], _monitors, acc), do: Enum.reverse(acc)
 
   defp do_messages_for_death_certificates([{pid, reason} | rest], monitors, acc) do

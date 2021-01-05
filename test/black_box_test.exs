@@ -10,8 +10,6 @@ defmodule ZenMonitor.BlackBox.Test do
 
   setup do
     start_supervised(ZenMonitor.Supervisor)
-    {:ok, _} = Application.ensure_all_started(:instruments)
-
     {:ok, down: :down@down, remotes: []}
   end
 

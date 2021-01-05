@@ -11,8 +11,6 @@ defmodule ZenMonitor.Local.Connector.Test do
 
     start_supervised(ZenMonitor.Supervisor)
 
-    {:ok, _} = Application.ensure_all_started(:instruments)
-
     on_exit(fn ->
       Node.monitor(compatible, true)
       Node.monitor(incompatible, true)

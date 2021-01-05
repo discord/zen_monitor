@@ -32,9 +32,10 @@ defmodule ZenMonitor.Mixfile do
   defp deps do
     [
       {:gen_stage, "~> 0.13.0"},
-      {:instruments, "~> 1.1.0"},
+      {:instruments, "~> 2.1.0"},
       {:gen_registry, "~> 1.0.0"},
-      {:ex_doc, "~> 0.19.1", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false}
     ]
   end
 

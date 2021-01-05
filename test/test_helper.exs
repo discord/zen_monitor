@@ -30,4 +30,6 @@ defmodule Helper do
   end
 end
 
+Application.ensure_all_started(:instruments)
+
 ExUnit.start()
