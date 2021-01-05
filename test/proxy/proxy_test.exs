@@ -14,7 +14,6 @@ defmodule ZenMonitor.Proxy.Test do
   setup do
     # Speed up the Batcher so its interval is much faster than the default timeout for
     # assert_receive / refute_receive
-    Application.ensure_all_started(:instruments)
     original_sweep_interval = Batcher.sweep_interval()
     Batcher.sweep_interval(10)
     start_supervised(ZenMonitor.Supervisor)

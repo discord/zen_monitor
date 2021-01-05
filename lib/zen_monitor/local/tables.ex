@@ -35,7 +35,7 @@ defmodule ZenMonitor.Local.Tables do
   `attempts` is the number of consecutive connect attempts that have failed, this value is useful
   for calculating geometric backoff values
   """
-  @spec nodes() :: :ets.tid()
+  @spec nodes() :: :ets.tab()
   def nodes do
     @node_table
   end
@@ -52,7 +52,7 @@ defmodule ZenMonitor.Local.Tables do
   reference (if the subscriber is known, by convention it will be the calling process, self()) or
   the retrieval of all active monitors for a subscriber.
   """
-  @spec references() :: :ets.tid()
+  @spec references() :: :ets.tab()
   def references do
     @reference_table
   end

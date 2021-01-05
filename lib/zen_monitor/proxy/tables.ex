@@ -27,7 +27,7 @@ defmodule ZenMonitor.Proxy.Tables do
 
   `subscriber` is the remote `ZenMonitor.Local.Connector` that is interested in the `monitored_pid`
   """
-  @spec subscribers() :: :ets.tid()
+  @spec subscribers() :: :ets.tab()
   def subscribers do
     @subscriber_table
   end
