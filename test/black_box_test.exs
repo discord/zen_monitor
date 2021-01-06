@@ -113,21 +113,14 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "local process returns a :DOWN message if it goes down", ctx do
       target = ctx.local_pid()
-      connector = Connector.get(node())
 
       # Monitor the local process
       ref = ZenMonitor.monitor(target)
-
-      # Since we aren't trying to test what happens if a monitor is established on an already down
-      # process, we will synchronize the monitor here.
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitor_established(ref, target)
 
       # Kill the local process
       Process.exit(target, :kill)
+      Helper.await_monitor_cleared(ref, target)
 
       # Assert that we receive the down messages
       assert_receive {:DOWN, ^ref, :process, ^target, {:zen_monitor, :killed}}
@@ -138,23 +131,16 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "multiple monitors all get fired", ctx do
       target = ctx.local_pid()
-      connector = Connector.get(node())
 
       # Monitor the local process multiple times
       ref_a = ZenMonitor.monitor(target)
       ref_b = ZenMonitor.monitor(target)
       ref_c = ZenMonitor.monitor(target)
-
-      # Since we aren't trying to test what happens if a monitor is established on an already down
-      # process, we will synchronize the monitor here.
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([ref_a, ref_b, ref_c], target)
 
       # Kill the local process
       Process.exit(target, :kill)
+      Helper.await_monitors_cleared([ref_a, ref_b, ref_c], target)
 
       # Assert that we receive down message for each monitor
       assert_receive {:DOWN, ^ref_a, :process, ^target, {:zen_monitor, :killed}}
@@ -203,21 +189,15 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "mixed monitors established before and after process down", ctx do
       target = ctx.local_pid()
-      connector = Connector.get(node())
 
       # Establish some monitors before the pid is killed
       ref_alive_a = ZenMonitor.monitor(target)
       ref_alive_b = ZenMonitor.monitor(target)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([ref_alive_a, ref_alive_b], target)
 
       # Kill the local process
       Process.exit(target, :kill)
+      Helper.await_monitors_cleared([ref_alive_a, ref_alive_b], target)
 
       # Assert that the initial monitors fire
       assert_receive {:DOWN, ^ref_alive_a, :process, ^target, {:zen_monitor, :killed}}
@@ -238,7 +218,6 @@ defmodule ZenMonitor.BlackBox.Test do
     test "multiple down processes all report back as :DOWN", ctx do
       target = ctx.local_pid()
       other = ctx.local_pid_b()
-      connector = Connector.get(node())
 
       # Establish multiple monitors for each process
       target_ref_a = ZenMonitor.monitor(target)
@@ -246,16 +225,15 @@ defmodule ZenMonitor.BlackBox.Test do
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
 
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_established([other_ref_a, other_ref_b], other)
 
       # Kill both local processes
       Process.exit(target, :kill)
       Process.exit(other, :kill)
+
+      Helper.await_monitors_cleared([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :killed}}
@@ -288,7 +266,6 @@ defmodule ZenMonitor.BlackBox.Test do
     test "mixed down processes all report back as :DOWN", ctx do
       target = ctx.local_pid()
       other = ctx.local_pid_b()
-      connector = Connector.get(node())
 
       # Kill target before establishing any monitors
       Process.exit(target, :kill)
@@ -298,16 +275,11 @@ defmodule ZenMonitor.BlackBox.Test do
       target_ref_b = ZenMonitor.monitor(target)
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([other_ref_a, other_ref_b], other)
 
       # Kill other after establishing the monitors
       Process.exit(other, :kill)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -327,21 +299,14 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "remote process returns a :DOWN message if it goes down", ctx do
       target = ctx.compatible_pid()
-      connector = Connector.get(ctx.compatible)
 
       # Monitor the remote process
       ref = ZenMonitor.monitor(target)
-
-      # Since we aren't trying to test what happens if a monitor is established on an already down
-      # process, we will synchronize the monitor here.
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitor_established(ref, target)
 
       # Kill the remote process
       Process.exit(target, :kill)
+      Helper.await_monitor_cleared(ref, target)
 
       # Assert that we receive the down messages
       assert_receive {:DOWN, ^ref, :process, ^target, {:zen_monitor, :killed}}
@@ -352,23 +317,16 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "multiple monitors all get fired", ctx do
       target = ctx.compatible_pid()
-      connector = Connector.get(ctx.compatible)
 
       # Monitor the remote process multiple times
       ref_a = ZenMonitor.monitor(target)
       ref_b = ZenMonitor.monitor(target)
       ref_c = ZenMonitor.monitor(target)
-
-      # Since we aren't trying to test what happens if a monitor is established on an already down
-      # process, we will synchronize the monitor here.
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([ref_a, ref_b, ref_c], target)
 
       # Kill the remote process
       Process.exit(target, :kill)
+      Helper.await_monitors_cleared([ref_a, ref_b, ref_c], target)
 
       # Assert that we receive down message for each monitor
       assert_receive {:DOWN, ^ref_a, :process, ^target, {:zen_monitor, :killed}}
@@ -417,21 +375,15 @@ defmodule ZenMonitor.BlackBox.Test do
 
     test "mixed monitors established before and after process down", ctx do
       target = ctx.compatible_pid()
-      connector = Connector.get(ctx.compatible)
 
       # Establish some monitors before the pid is killed
       ref_alive_a = ZenMonitor.monitor(target)
       ref_alive_b = ZenMonitor.monitor(target)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([ref_alive_a, ref_alive_b], target)
 
       # Kill the remote process
       Process.exit(target, :kill)
+      Helper.await_monitors_cleared([ref_alive_a, ref_alive_b], target)
 
       # Assert that the initial monitors fire
       assert_receive {:DOWN, ^ref_alive_a, :process, ^target, {:zen_monitor, :killed}}
@@ -452,24 +404,20 @@ defmodule ZenMonitor.BlackBox.Test do
     test "multiple down processes all report back as :DOWN", ctx do
       target = ctx.compatible_pid()
       other = ctx.compatible_pid_b()
-      connector = Connector.get(ctx.compatible)
 
       # Establish multiple monitors for each process
       target_ref_a = ZenMonitor.monitor(target)
       target_ref_b = ZenMonitor.monitor(target)
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitors_established([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_established([other_ref_a, other_ref_b], other)
 
       # Kill both remote processes
       Process.exit(target, :kill)
       Process.exit(other, :kill)
+      Helper.await_monitors_cleared([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :killed}}
@@ -502,7 +450,6 @@ defmodule ZenMonitor.BlackBox.Test do
     test "mixed down processes all report back as :DOWN", ctx do
       target = ctx.compatible_pid()
       other = ctx.compatible_pid_b()
-      connector = Connector.get(ctx.compatible)
 
       # Kill target before establishing any monitors
       Process.exit(target, :kill)
@@ -512,16 +459,12 @@ defmodule ZenMonitor.BlackBox.Test do
       target_ref_b = ZenMonitor.monitor(target)
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
+      Helper.await_monitors_established([other_ref_a, other_ref_b], other)
 
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
 
       # Kill other after establishing the monitors
       Process.exit(other, :kill)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -534,21 +477,17 @@ defmodule ZenMonitor.BlackBox.Test do
       remote = ctx.compatible()
       target = ctx.compatible_pid()
       other = ctx.compatible_pid_b()
-      connector = Connector.get(remote)
 
       # Monitor both remote processes
       target_ref = ZenMonitor.monitor(target)
       other_ref = ZenMonitor.monitor(other)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitor_established(target_ref, target)
+      Helper.await_monitor_established(other_ref, other)
 
       # Stop the remote node
       assert :ok = :slave.stop(remote)
+      Helper.await_monitor_cleared(target_ref, target)
+      Helper.await_monitor_cleared(other_ref, other)
 
       # Assert that the :DOWN messages were dispatched with :nodedown
       assert_receive {:DOWN, ^target_ref, :process, ^target, {:zen_monitor, :nodedown}}
@@ -604,13 +543,7 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Perform an initial monitor
       target_ref = ZenMonitor.monitor(target)
-
-      # Synchronize the monitors
-      Process.sleep(50)
-
-      assert Helper.wait_until(fn ->
-               :sys.get_state(connector).length == 0
-             end)
+      Helper.await_monitor_established(target_ref, target)
 
       # Check that the remote is considered compatible
       assert :compatible = ZenMonitor.compatibility_for_node(remote)
@@ -620,6 +553,8 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Perform an additional monitor
       other_ref = ZenMonitor.monitor(other)
+
+      Helper.await_monitor_cleared(target_ref, target)
 
       # Assert that we get notified for both monitored processes
       assert_receive {:DOWN, ^target_ref, :process, ^target, {:zen_monitor, :nodedown}}
@@ -640,9 +575,12 @@ defmodule ZenMonitor.BlackBox.Test do
       # Monitor both remote processes
       target_ref = ZenMonitor.monitor(target)
       other_ref = ZenMonitor.monitor(other)
+      Helper.await_monitor_established(target_ref, target)
+      Helper.await_monitor_established(other_ref, other)
 
       # Kill the target process
       Process.exit(target, :kill)
+      Helper.await_monitor_cleared(target_ref, target)
 
       # Assert that we receive a :DOWN for the target
       assert_receive {:DOWN, ^target_ref, :process, ^target, {:zen_monitor, _}}
@@ -694,12 +632,11 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Monitor the remote process
       ref = ZenMonitor.monitor(target)
+      Helper.await_monitor_established(ref, target)
 
       # Kill the remote process
       Process.exit(target, :kill)
-
-      # Wait for delivery
-      Process.sleep(50)
+      Helper.await_monitor_cleared(ref, target)
 
       # Demonitor the reference
       ZenMonitor.demonitor(ref)
@@ -714,12 +651,15 @@ defmodule ZenMonitor.BlackBox.Test do
       # Monitor the remote process twice
       ref_to_demonitor = ZenMonitor.monitor(target)
       ref_to_keep = ZenMonitor.monitor(target)
+      Helper.await_monitors_established([ref_to_demonitor, ref_to_keep], target)
 
       # Demonitor one of the references
       ZenMonitor.demonitor(ref_to_demonitor)
 
       # Kill the remote process
       Process.exit(target, :kill)
+      Helper.await_monitor_cleared(ref_to_keep, target)
+
 
       # Assert that the monitor that was not demonitored fired
       assert_receive {:DOWN, ^ref_to_keep, :process, ^target, {:zen_monitor, _}}
@@ -737,12 +677,14 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Monitor the remote process
       ref = ZenMonitor.monitor(target)
+      Helper.await_monitor_established(ref, target)
 
       # Demonitor the reference
       ZenMonitor.demonitor(ref, [:flush])
 
       # Kill the process
       Process.exit(target, :kill)
+      Helper.await_monitor_cleared(ref, target)
 
       # Assert that nothing was delivered
       refute_receive {:DOWN, ^ref, :process, ^target, _}
@@ -753,12 +695,11 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Monitor the remote process
       ref = ZenMonitor.monitor(target)
+      Helper.await_monitor_established(ref, target)
 
       # Kill the remote process
       Process.exit(target, :kill)
-
-      # Wait for delivery
-      Process.sleep(50)
+      Helper.await_monitor_cleared(ref, target)
 
       # Demonitor the reference
       ZenMonitor.demonitor(ref, [:flush])
@@ -774,12 +715,11 @@ defmodule ZenMonitor.BlackBox.Test do
       ref_to_flush = ZenMonitor.monitor(target)
       ref_to_demonitor = ZenMonitor.monitor(target)
       ref_to_keep = ZenMonitor.monitor(target)
+      Helper.await_monitors_established([ref_to_flush, ref_to_demonitor, ref_to_keep], target)
 
       # Kill the remote process
       Process.exit(target, :kill)
-
-      # Wait for delivery
-      Process.sleep(50)
+      Helper.await_monitors_cleared([ref_to_flush, ref_to_demonitor, ref_to_keep], target)
 
       # Flush one of the references
       ZenMonitor.demonitor(ref_to_flush, [:flush])
