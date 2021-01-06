@@ -159,6 +159,7 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Monitor the local process
       ref = ZenMonitor.monitor(target)
+      Helper.await_monitor_cleared(ref, target)
 
       # Assert that we receive the correct reason
       assert_receive {:DOWN, ^ref, :process, ^target, {:zen_monitor, :noproc}}
@@ -177,6 +178,8 @@ defmodule ZenMonitor.BlackBox.Test do
       ref_a = ZenMonitor.monitor(target)
       ref_b = ZenMonitor.monitor(target)
       ref_c = ZenMonitor.monitor(target)
+
+      Helper.await_monitors_cleared([ref_a, ref_b, ref_c], target)
 
       # Assert that we receive multiple :DOWN messages with the correct reason
       assert_receive {:DOWN, ^ref_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -206,6 +209,8 @@ defmodule ZenMonitor.BlackBox.Test do
       # Establish some monitors after the pid is killed
       ref_dead_a = ZenMonitor.monitor(target)
       ref_dead_b = ZenMonitor.monitor(target)
+
+      Helper.await_monitors_cleared([ref_dead_a, ref_dead_b], target)
 
       # Assert that the new monitors got the expected :DOWN messages with the correct reason
       assert_receive {:DOWN, ^ref_dead_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -256,6 +261,9 @@ defmodule ZenMonitor.BlackBox.Test do
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
 
+      Helper.await_monitors_cleared([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
+
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :noproc}}
       assert_receive {:DOWN, ^target_ref_b, :process, ^target, {:zen_monitor, :noproc}}
@@ -279,6 +287,7 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Kill other after establishing the monitors
       Process.exit(other, :kill)
+      Helper.await_monitors_cleared([target_ref_a, target_ref_b], target)
       Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
@@ -345,7 +354,7 @@ defmodule ZenMonitor.BlackBox.Test do
 
       # Monitor the remote process
       ref = ZenMonitor.monitor(target)
-
+      Helper.await_monitor_cleared(ref, target)
       # Assert that we receive the correct reason
       assert_receive {:DOWN, ^ref, :process, ^target, {:zen_monitor, :noproc}}
 
@@ -363,6 +372,8 @@ defmodule ZenMonitor.BlackBox.Test do
       ref_a = ZenMonitor.monitor(target)
       ref_b = ZenMonitor.monitor(target)
       ref_c = ZenMonitor.monitor(target)
+
+      Helper.await_monitors_cleared([ref_a, ref_b, ref_c], target)
 
       # Assert that we receive multiple :DOWN messages with the correct reason
       assert_receive {:DOWN, ^ref_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -392,6 +403,7 @@ defmodule ZenMonitor.BlackBox.Test do
       # Establish some monitors after the pid is killed
       ref_dead_a = ZenMonitor.monitor(target)
       ref_dead_b = ZenMonitor.monitor(target)
+      Helper.await_monitors_cleared([ref_dead_a, ref_dead_b], target)
 
       # Assert that the new monitors got the expected :DOWN messages with the correct reason
       assert_receive {:DOWN, ^ref_dead_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -439,6 +451,9 @@ defmodule ZenMonitor.BlackBox.Test do
       target_ref_b = ZenMonitor.monitor(target)
       other_ref_a = ZenMonitor.monitor(other)
       other_ref_b = ZenMonitor.monitor(other)
+
+      Helper.await_monitors_cleared([target_ref_a, target_ref_b], target)
+      Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
 
       # Assert that we receive all the expected :DOWN messages
       assert_receive {:DOWN, ^target_ref_a, :process, ^target, {:zen_monitor, :noproc}}
@@ -539,7 +554,6 @@ defmodule ZenMonitor.BlackBox.Test do
       remote = ctx.compatible()
       target = ctx.compatible_pid()
       other = ctx.compatible_pid_b()
-      connector = Connector.get(remote)
 
       # Perform an initial monitor
       target_ref = ZenMonitor.monitor(target)
