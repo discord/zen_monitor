@@ -141,6 +141,16 @@ defmodule ZenMonitor.Local.Connector do
   end
 
   @doc """
+  Retrieves all the monitors established between the target and the subscriber
+  """
+  @spec monitors(target :: ZenMonitor.destination(), subscriber :: pid()) :: [reference()]
+  def monitors(target, subscriber) do
+    target
+    |> get()
+    |> GenServer.call({:monitors, target, subscriber})
+  end
+
+  @doc """
   Asynchronously demonitors a pid.
   """
   @spec demonitor(target :: ZenMonitor.destination(), ref :: reference()) :: :ok
@@ -285,6 +295,32 @@ defmodule ZenMonitor.Local.Connector do
   def handle_call(:connect, _from, %State{} = state) do
     {result, state} = do_compatibility(state)
     {:reply, result, state}
+  end
+
+  @doc """
+  Returns all the monitors between a target and a subscriber
+  """
+  def handle_call({:monitors, target, subscriber}, _from, %State{} = state) do
+    size = :ets.info(state.monitors, :size)
+
+
+    monitors =
+      if size == 0 do
+        # Don't bother doing the match on an empty table
+        []
+      else
+        case :ets.match(state.monitors, {{target, :"$1"}, subscriber}, size) do
+          :"$end_of_table" ->
+            # Match failed
+            []
+
+          {monitors, _} ->
+            # Unwrap the references
+            List.flatten(monitors)
+        end
+      end
+
+    {:reply, monitors, state}
   end
 
   @doc """
