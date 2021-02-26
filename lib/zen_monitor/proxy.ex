@@ -58,6 +58,7 @@ defmodule ZenMonitor.Proxy do
   ## Server
 
   def init(_args) do
+    Process.flag(:message_queue_data, :off_heap)
     {:ok, %State{monitors: :ets.new(:monitors, [:private, :set])}}
   end
 
