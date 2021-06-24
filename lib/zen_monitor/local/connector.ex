@@ -303,7 +303,6 @@ defmodule ZenMonitor.Local.Connector do
   def handle_call({:monitors, target, subscriber}, _from, %State{} = state) do
     size = :ets.info(state.monitors, :size)
 
-
     monitors =
       if size == 0 do
         # Don't bother doing the match on an empty table

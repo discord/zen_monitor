@@ -102,6 +102,7 @@ defmodule ZenMonitor.Local.Dispatcher do
   ## Server
 
   def init(_opts) do
+    Process.flag(:message_queue_data, :off_heap)
     {:consumer, nil, subscribe_to: [{ZenMonitor.Local, min_demand: 1}]}
   end
 
