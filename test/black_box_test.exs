@@ -476,7 +476,6 @@ defmodule ZenMonitor.BlackBox.Test do
       other_ref_b = ZenMonitor.monitor(other)
       Helper.await_monitors_established([other_ref_a, other_ref_b], other)
 
-
       # Kill other after establishing the monitors
       Process.exit(other, :kill)
       Helper.await_monitors_cleared([other_ref_a, other_ref_b], other)
@@ -673,7 +672,6 @@ defmodule ZenMonitor.BlackBox.Test do
       # Kill the remote process
       Process.exit(target, :kill)
       Helper.await_monitor_cleared(ref_to_keep, target)
-
 
       # Assert that the monitor that was not demonitored fired
       assert_receive {:DOWN, ^ref_to_keep, :process, ^target, {:zen_monitor, _}}
