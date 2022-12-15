@@ -66,7 +66,7 @@ defmodule ZenMonitor.Proxy.Batcher.Test do
 
       # Give a chance for the GenRegistry to react to the above
       # death.
-      replacement = if replacement != original do
+      replacement = if replacement == original do
         Process.sleep(50)
         Batcher.get(self())
       else
