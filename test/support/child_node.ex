@@ -73,7 +73,6 @@ defmodule ChildNode do
     default_node_start_args = [
       "-setcookie #{Node.get_cookie()}",
       "-pa #{code_paths}",
-      "-s application ensure_all_started elixir",
       "-connect_all false"
     ]
 
@@ -88,6 +87,7 @@ defmodule ChildNode do
 
     node_name = to_node_name(node_name)
     {:ok, node_name} = :slave.start_link('0.0.0.0', node_name, node_start_args)
+    {:ok, _} = :rpc.call(node_name, :application, :ensure_all_started, [:elixir])
 
     on_start = params[:on_start]
     rpc_args = [node_name, app_to_start, on_start, self()]
