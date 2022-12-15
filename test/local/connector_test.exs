@@ -153,6 +153,14 @@ defmodule ZenMonitor.Local.Connector.Test do
       refute Process.alive?(original)
 
       replacement = Connector.get_for_node(ctx.compatible)
+
+      replacement = if replacement == original do
+        Process.sleep(50)
+        Connector.get_for_node(ctx.compatible)
+      else
+        replacement
+      end
+
       assert Process.alive?(replacement)
 
       assert original != replacement
@@ -326,7 +334,7 @@ defmodule ZenMonitor.Local.Connector.Test do
 
     test "doesn't send down", ctx do
       reference = make_ref()
-      target = ctx.compatible_pid()
+      target = ctx.compatible_pid
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target
@@ -349,8 +357,8 @@ defmodule ZenMonitor.Local.Connector.Test do
       subscriber = self()
       target_reference = make_ref()
       other_reference = make_ref()
-      target = ctx.compatible_pid()
-      other = ctx.compatible_pid_b()
+      target = ctx.compatible_pid
+      other = ctx.compatible_pid_b
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor both processes
@@ -380,7 +388,7 @@ defmodule ZenMonitor.Local.Connector.Test do
       subscriber = self()
       right_reference = make_ref()
       wrong_reference = make_ref()
-      target = ctx.compatible_pid()
+      target = ctx.compatible_pid
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target
@@ -407,8 +415,8 @@ defmodule ZenMonitor.Local.Connector.Test do
     test "incorrect pid does nothing", ctx do
       subscriber = self()
       reference = make_ref()
-      right_target = ctx.compatible_pid()
-      wrong_target = ctx.compatible_pid_b()
+      right_target = ctx.compatible_pid
+      wrong_target = ctx.compatible_pid_b
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target
@@ -435,7 +443,7 @@ defmodule ZenMonitor.Local.Connector.Test do
     test "demonitoring the only monitor adds an unsubscribe to the queue", ctx do
       subscriber = self()
       reference = make_ref()
-      target = ctx.compatible_pid()
+      target = ctx.compatible_pid
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target
@@ -464,7 +472,7 @@ defmodule ZenMonitor.Local.Connector.Test do
       subscriber = self()
       reference = make_ref()
       other_reference = make_ref()
-      target = ctx.compatible_pid()
+      target = ctx.compatible_pid
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target multiple times
@@ -493,7 +501,7 @@ defmodule ZenMonitor.Local.Connector.Test do
       subscriber = self()
       reference = make_ref()
       other_reference = make_ref()
-      target = ctx.compatible_pid()
+      target = ctx.compatible_pid
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor the target multiple times
@@ -544,9 +552,9 @@ defmodule ZenMonitor.Local.Connector.Test do
       target_ref_b_2 = make_ref()
       target_ref_c_1 = make_ref()
       target_ref_c_2 = make_ref()
-      target_a = ctx.compatible_pid()
-      target_b = ctx.compatible_pid_b()
-      target_c = ctx.compatible_pid_c()
+      target_a = ctx.compatible_pid
+      target_b = ctx.compatible_pid_b
+      target_c = ctx.compatible_pid_c
       connector = Connector.get_for_node(ctx.compatible)
 
       # Make some monitors
@@ -622,9 +630,9 @@ defmodule ZenMonitor.Local.Connector.Test do
       reference_a = make_ref()
       reference_b = make_ref()
       reference_c = make_ref()
-      target_a = ctx.compatible_pid()
-      target_b = ctx.compatible_pid_b()
-      target_c = ctx.compatible_pid_c()
+      target_a = ctx.compatible_pid
+      target_b = ctx.compatible_pid_b
+      target_c = ctx.compatible_pid_c
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor some pids
@@ -655,9 +663,9 @@ defmodule ZenMonitor.Local.Connector.Test do
       subscriber = self()
       reference_a = make_ref()
       reference_c = make_ref()
-      target_a = ctx.compatible_pid()
-      target_b = ctx.compatible_pid_b()
-      target_c = ctx.compatible_pid_c()
+      target_a = ctx.compatible_pid
+      target_b = ctx.compatible_pid_b
+      target_c = ctx.compatible_pid_c
       connector = Connector.get_for_node(ctx.compatible)
 
       # Monitor some pids (intentionally skip target_b)
@@ -699,8 +707,8 @@ defmodule ZenMonitor.Local.Connector.Test do
     end
 
     test "sweep sends the monitored pids since the last sweep", ctx do
-      target = ctx.compatible_pid()
-      remote = ctx.compatible()
+      target = ctx.compatible_pid
+      remote = ctx.compatible
       connector = Connector.get_for_node(remote)
 
       # Monitor the target pid
@@ -718,8 +726,8 @@ defmodule ZenMonitor.Local.Connector.Test do
     end
 
     test "sweep ignores already monitored pids on subsequenet sweeps", ctx do
-      target = ctx.compatible_pid()
-      remote = ctx.compatible()
+      target = ctx.compatible_pid
+      remote = ctx.compatible
       connector = Connector.get_for_node(remote)
 
       # Monitor the target pid
@@ -747,8 +755,8 @@ defmodule ZenMonitor.Local.Connector.Test do
     end
 
     test "sweep transmits pids in the order received", ctx do
-      first = ctx.compatible_pid()
-      second = ctx.compatible_pid_b()
+      first = ctx.compatible_pid
+      second = ctx.compatible_pid_b
       remote = ctx.compatible
       connector = Connector.get_for_node(remote)
 
@@ -820,8 +828,8 @@ defmodule ZenMonitor.Local.Connector.Test do
     test "sweep sends nodedown for incompatible remote", ctx do
       subscriber = self()
       reference = make_ref()
-      target = ctx.incompatible_pid()
-      remote = ctx.incompatible()
+      target = ctx.incompatible_pid
+      remote = ctx.incompatible
       connector = Connector.get_for_node(remote)
 
       # Monitor the target pid
