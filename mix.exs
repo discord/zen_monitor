@@ -5,8 +5,8 @@ defmodule ZenMonitor.Mixfile do
     [
       app: :zen_monitor,
       name: "ZenMonitor",
-      version: "1.1.1",
-      elixir: "~> 1.5",
+      version: "1.2.0",
+      elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -34,7 +34,7 @@ defmodule ZenMonitor.Mixfile do
       {:gen_stage, "~> 0.13.0"},
       {:instruments, "~> 2.1"},
       {:gen_registry, "~> 1.0"},
-      {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.27.3", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false}
     ]
   end
