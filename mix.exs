@@ -5,7 +5,7 @@ defmodule ZenMonitor.Mixfile do
     [
       app: :zen_monitor,
       name: "ZenMonitor",
-      version: "2.0.0",
+      version: "2.0.1",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -31,7 +31,7 @@ defmodule ZenMonitor.Mixfile do
 
   defp deps do
     [
-      {:gen_stage, "~> 0.13.0"},
+      {:gen_stage, "~> 1.0"},
       {:instruments, "~> 2.1"},
       {:gen_registry, "~> 1.0"},
       {:ex_doc, "~> 0.27.3", only: :dev, runtime: false},
