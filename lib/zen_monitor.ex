@@ -92,7 +92,7 @@ defmodule ZenMonitor do
   @doc """
   Get the module to use for gen calls from the Application Environment
 
-  This module only needs to support `GenServer.call/3` and `GenServer.cast/3` functionality, see
+  This module only needs to support `GenServer.call/3` and `GenServer.cast/2` functionality, see
   ZenMonitor's `@gen_module` for the default value
 
   This can be controlled at boot and runtime with the `{:zen_monitor, :gen_module}` setting, see
