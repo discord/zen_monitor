@@ -215,15 +215,11 @@ defmodule ZenMonitor.Local do
     end
   end
 
-  @doc """
-  Handle a local subscriber going down
-
-  When a process establishes a remote monitor, ZenMonitor.Local establishes a reciprocal monitor,
-  see monitor/1 and handle_cast({:monitor_subscriber, ...}) for more information.
-
-  If the subscriber crashes, all of the ETS records maintained by ZenMonitor.Local and the various
-  ZenMonitor.Local.Connectors is no longer needed and will be cleaned up by this handler.
-  """
+  # Handle a local subscriber going down
+  # When a process establishes a remote monitor, ZenMonitor.Local establishes a reciprocal monitor,
+  # see monitor/1 and handle_cast({:monitor_subscriber, ...}) for more information.
+  # If the subscriber crashes, all of the ETS records maintained by ZenMonitor.Local and the various
+  # ZenMonitor.Local.Connectors is no longer needed and will be cleaned up by this handler.
   def handle_info(
         {:DOWN, _ref, :process, subscriber, _reason},
         %State{subscribers: subscribers} = state
@@ -242,16 +238,12 @@ defmodule ZenMonitor.Local do
     {:noreply, [], state}
   end
 
-  @doc """
-  Handles recipricol subscriber monitoring
-
-  When a process establishes a remote monitor, ZenMonitor.Local will establish a reciprocal
-  monitor on the subscriber.  This is done so that appropriate cleanup can happen if the
-  subscriber goes down.
-
-  This handler guarantees that a local subscriber will only ever have one active reciprocal
-  monitor at a time by tracking the subscribers in an ETS table.
-  """
+  # Handles recipricol subscriber monitoring
+  # When a process establishes a remote monitor, ZenMonitor.Local will establish a reciprocal
+  # monitor on the subscriber.  This is done so that appropriate cleanup can happen if the
+  # subscriber goes down.
+  # This handler guarantees that a local subscriber will only ever have one active reciprocal
+  # monitor at a time by tracking the subscribers in an ETS table.
   def handle_cast({:monitor_subscriber, subscriber}, %State{subscribers: subscribers} = state) do
     if :ets.insert_new(subscribers, {subscriber}) do
       Process.monitor(subscriber)
@@ -260,13 +252,10 @@ defmodule ZenMonitor.Local do
     {:noreply, [], state}
   end
 
-  @doc """
-  Handles enqueuing messages for eventual dispatch
-
-  ZenMonitor.Local.Connector is responsible for generating down dispatches and enqueuing them with
-  ZenMonitor.Local.  ZenMonitor.Local takes these messages and places them into the
-  batch queue to be delivered to ZenMonitor.Local.Dispatcher as demanded.
-  """
+  # Handles enqueuing messages for eventual dispatch
+  # ZenMonitor.Local.Connector is responsible for generating down dispatches and enqueuing them with
+  # ZenMonitor.Local.  ZenMonitor.Local takes these messages and places them into the
+  # batch queue to be delivered to ZenMonitor.Local.Dispatcher as demanded.
   def handle_cast({:enqueue, messages}, %State{batch: batch, length: length} = state) do
     {batch, new_length} =
       messages
@@ -279,11 +268,8 @@ defmodule ZenMonitor.Local do
     {:noreply, [], %State{state | batch: batch, length: new_length}}
   end
 
-  @doc """
-  Handles batch length checks
-
-  Returns the current length of the batch
-  """
+  # Handles batch length checks
+  # Returns the current length of the batch
   def handle_call(:batch_length, _from, %State{length: length} = state) do
     {:reply, length, [], state}
   end

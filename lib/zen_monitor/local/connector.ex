@@ -286,20 +286,15 @@ defmodule ZenMonitor.Local.Connector do
     {:ok, %State{remote: remote, monitors: monitors}}
   end
 
-  @doc """
-  Synchronous connect handler
-
-  Attempts to connect to the remote, this handler does check the cache before connecting to avoid
-  a thundering herd.
-  """
+  # Synchronous connect handler
+  # Attempts to connect to the remote, this handler does check the cache before connecting to avoid
+  # a thundering herd.
   def handle_call(:connect, _from, %State{} = state) do
     {result, state} = do_compatibility(state)
     {:reply, result, state}
   end
 
-  @doc """
-  Returns all the monitors between a target and a subscriber
-  """
+  # Returns all the monitors between a target and a subscriber
   def handle_call({:monitors, target, subscriber}, _from, %State{} = state) do
     size = :ets.info(state.monitors, :size)
 
@@ -322,13 +317,10 @@ defmodule ZenMonitor.Local.Connector do
     {:reply, monitors, state}
   end
 
-  @doc """
-  Handles establishing a new monitor
-
-  1.  Records the monitor into the internal ETS table
-  2.  If this is the first monitor for the pid, adds it to the queue for subsequent dispatch to
-      the ZenMonitor.Proxy during the next sweep.
-  """
+  # Handles establishing a new monitor
+  # 1.  Records the monitor into the internal ETS table
+  # 2.  If this is the first monitor for the pid, adds it to the queue for subsequent dispatch to
+  #     the ZenMonitor.Proxy during the next sweep.
   def handle_cast(
         {:monitor, target, ref, subscriber},
         %State{batch: batch, length: length, monitors: monitors} = state
@@ -353,11 +345,8 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, new_state}
   end
 
-  @doc """
-  Handles demonitoring a reference for a given pid
-
-  Cleans up the internal ETS record if it exists
-  """
+  # Handles demonitoring a reference for a given pid
+  # Cleans up the internal ETS record if it exists
   def handle_cast(
         {:demonitor, target, ref},
         %State{batch: batch, length: length, monitors: monitors} = state
@@ -382,11 +371,8 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, state}
   end
 
-  @doc """
-  Handles nodedown for the Connector's remote
-
-  When the remote node goes down, every monitor maintained by the Connector should fire
-  """
+  # Handles nodedown for the Connector's remote
+  # When the remote node goes down, every monitor maintained by the Connector should fire
   def handle_info({:nodedown, remote}, %State{remote: remote} = state) do
     # Mark this node as unavailable
     {:incompatible, state} = do_mark_unavailable(state)
@@ -398,11 +384,8 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, do_down(state)}
   end
 
-  @doc """
-  Handles when the proxy crashes because of noconnection
-
-  This reason indicates that we have lost connection with the remote node, mark it as unavailable.
-  """
+  # Handles when the proxy crashes because of noconnection
+  # This reason indicates that we have lost connection with the remote node, mark it as unavailable.
   def handle_info({:DOWN, ref, :process, _, :noconnection}, %State{remote_proxy_ref: ref} = state) do
     # Mark this node as unavailable
     {:incompatible, state} = do_mark_unavailable(state)
@@ -414,11 +397,8 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, do_down(state)}
   end
 
-  @doc """
-  Handles when the proxy crashes for any other reason
-
-  Penalize the remote as incompatible and let the normal remote recovery take care of it.
-  """
+  # Handles when the proxy crashes for any other reason
+  # Penalize the remote as incompatible and let the normal remote recovery take care of it.
   def handle_info({:DOWN, ref, :process, _, _}, %State{remote_proxy_ref: ref} = state) do
     # Mark this node as incompatible
     {:incompatible, state} = do_mark_incompatible(state, 1)
@@ -430,15 +410,11 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, do_down(state)}
   end
 
-  @doc """
-  Handle the dead summary from the remote
-
-  Periodically the remote node will send us a summary of everything that has died that we have
-  monitored.
-
-  Connector will find and consume all the matching monitors and enqueue the appropriate messages
-  for each monitor with ZenMonitor.Local
-  """
+  # Handle the dead summary from the remote
+  # Periodically the remote node will send us a summary of everything that has died that we have
+  # monitored.
+  # Connector will find and consume all the matching monitors and enqueue the appropriate messages
+  # for each monitor with ZenMonitor.Local
   def handle_info(
         {:dead, remote, death_certificates},
         %State{remote: remote, monitors: monitors} = state
@@ -450,15 +426,11 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, state}
   end
 
-  @doc """
-  Handle the periodic sweep
-
-  If the remote is compatible this will create a subscription summary up to chunk_size of all the
-  pids that need monitoring since the last sweep.  This will be sent to the remote for monitoring.
-
-  If the remote is incompatible, all pids since the last sweep will have their monitors fire with
-  `{:zen_monitor, :nodedown}`
-  """
+  # Handle the periodic sweep
+  # If the remote is compatible this will create a subscription summary up to chunk_size of all the
+  # pids that need monitoring since the last sweep.  This will be sent to the remote for monitoring.
+  # If the remote is incompatible, all pids since the last sweep will have their monitors fire with
+  # `{:zen_monitor, :nodedown}`
   def handle_info(:sweep, %State{} = state) do
     new_state =
       case do_compatibility(state) do
@@ -473,11 +445,6 @@ defmodule ZenMonitor.Local.Connector do
     {:noreply, new_state}
   end
 
-  @doc """
-  Handle other info
-
-  If a call times out, the remote end might still reply and that would result in a handle_info
-  """
   def handle_info(_, %State{} = state) do
     increment("unhandled_info")
     {:noreply, state}

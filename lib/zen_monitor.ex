@@ -58,7 +58,7 @@ defmodule ZenMonitor do
     - `{name, node}` represents a named process on the given node
     - `name :: atom()` is a named process on the local node
   """
-  @type destination :: pid() | {name :: atom, node :: node()} | name :: atom()
+  @type destination :: pid() | ({name :: atom, node :: node()}) | (name :: atom())
 
   ## Delegates
 

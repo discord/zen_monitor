@@ -1,4 +1,5 @@
 defmodule ZenMonitor.Proxy.Batcher do
+
   @moduledoc """
   `ZenMonitor.Proxy.Batcher` is responsible for collecting death_certificates from
   `ZenMonitor.Proxy` destined for the Batcher's subscriber (normally the subscriber is a
@@ -134,11 +135,8 @@ defmodule ZenMonitor.Proxy.Batcher do
     {:noreply, %State{state | batch: :queue.in({pid, reason}, batch), length: length + 1}}
   end
 
-  @doc """
-  Handle the subscriber crashing
-
-  When the subscriber crashes there is no point in continuing to run, so the Batcher stops.
-  """
+  # Handle the subscriber crashing
+  # When the subscriber crashes there is no point in continuing to run, so the Batcher stops.
   def handle_info(
         {:DOWN, _, :process, subscriber, reason},
         %State{subscriber: subscriber} = state
@@ -148,12 +146,9 @@ defmodule ZenMonitor.Proxy.Batcher do
     {:stop, {:shutdown, {:subscriber_down, reason}}, state}
   end
 
-  @doc """
-  Handle sweep
-
-  Every sweep the batcher will send the death_certificates batched up since the last sweep to the
-  subscriber.  After that it will schedule another sweep.
-  """
+  # Handle sweep
+  # Every sweep the batcher will send the death_certificates batched up since the last sweep to the
+  # subscriber.  After that it will schedule another sweep.
   def handle_info(:sweep, %State{} = state) do
     new_state = do_sweep(state)
     schedule_sweep()
