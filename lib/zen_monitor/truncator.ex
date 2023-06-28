@@ -184,7 +184,7 @@ defmodule ZenMonitor.Truncator do
       |> Map.from_struct()
       |> do_truncate(current, max_depth)
 
-    if is_map(truncated_value) do
+    if is_map(truncated_value) and function_exported?(struct_module, :__struct__, 0) do
       struct(struct_module, truncated_value)
     else
       truncated_value
