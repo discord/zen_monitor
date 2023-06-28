@@ -153,14 +153,14 @@ defmodule TruncatorTest do
   end
 
   describe "struct robustness" do
-    test "small unknown struct loses its struct key" do
+    test "small unknown struct stays as-is" do
       unknown_struct = %{
         :__struct__ => NotARealModule,
         a: :b,
         c: :d
       }
 
-      assert %{a: :b, c: :d} == Truncator.truncate(unknown_struct)
+      assert unknown_struct == Truncator.truncate(unknown_struct)
     end
 
     test "large unknown struct should be truncated" do
