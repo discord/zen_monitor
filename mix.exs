@@ -5,7 +5,7 @@ defmodule ZenMonitor.Mixfile do
     [
       app: :zen_monitor,
       name: "ZenMonitor",
-      version: "2.0.2",
+      version: "2.0.3",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
