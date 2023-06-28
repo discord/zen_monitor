@@ -185,7 +185,9 @@ defmodule ZenMonitor.Truncator do
       |> do_truncate(current, max_depth)
 
     if is_map(truncated_value) do
-      struct(struct_module, truncated_value)
+      # Don't use Kernel.struct/2 because that crashes if this node
+      # does not have the code for struct_module.
+      Map.put(truncated_value, :__struct__, struct_module)
     else
       truncated_value
     end
