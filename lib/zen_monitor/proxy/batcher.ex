@@ -14,6 +14,7 @@ defmodule ZenMonitor.Proxy.Batcher do
   alias ZenMonitor.Proxy.Tables
 
   @chunk_size 5000
+  @lookup_timeout 30_000
   @sweep_interval 100
 
   defmodule State do
@@ -54,7 +55,7 @@ defmodule ZenMonitor.Proxy.Batcher do
         batcher
 
       {:error, :not_found} ->
-        {:ok, batcher} = GenRegistry.lookup_or_start(__MODULE__, subscriber, [subscriber])
+        {:ok, batcher} = GenRegistry.lookup_or_start(__MODULE__, subscriber, [subscriber], lookup_timeout())
         batcher
     end
   end
@@ -84,13 +85,39 @@ defmodule ZenMonitor.Proxy.Batcher do
   @doc """
   Puts the sweep interval into the Application Environment
 
-  This is a simple convenience function for overwrite the {:zen_monitor, :batcher_sweep_interval}
+  This is a simple convenience function to overwrite the {:zen_monitor, :batcher_sweep_interval}
   setting at runtime
   """
   @spec sweep_interval(value :: integer) :: :ok
   def sweep_interval(value) do
     Application.put_env(:zen_monitor, :batcher_sweep_interval, value)
   end
+
+  @doc """
+  Gets the lookup timeout from the Application Environment
+
+  The lookup timeout is the maximum amount of time in milliseconds that the calling process will
+  wait to lookup or start a Batcher before exiting.
+
+  This can be controlled at boot and runtime with the `{:zen_monitor, :batcher_lookup_timeout}`
+  setting, see `ZenMonitor.Proxy.Batcher.lookup_timeout/1` for runtime convenience functionality.
+  """
+  @spec lookup_timeout() :: timeout()
+  def lookup_timeout do
+    Application.get_env(:zen_monitor, :batcher_lookup_timeout, @lookup_timeout)
+  end
+
+  @doc """
+  Puts the lookup timeout into the Application Environment
+
+  This is a simple convenience function to overwrite the {:zen_monitor, :batcher_lookup_timeout}
+  setting at runtime.
+  """
+  @spec lookup_timeout(timeout :: timeout()) :: :ok
+  def lookup_timeout(timeout) do
+    Application.put_env(:zen_monitor, :batcher_lookup_timeout, timeout)
+  end
+
 
   @doc """
   Gets the chunk size from the Application Environment
@@ -109,7 +136,7 @@ defmodule ZenMonitor.Proxy.Batcher do
   @doc """
   Puts the chunk size into the Application Environment
 
-  This is a simple convenience function for overwrite the {:zen_monitor, :batcher_chunk_size}
+  This is a simple convenience function to overwrite the {:zen_monitor, :batcher_chunk_size}
   setting at runtime.
   """
   @spec chunk_size(value :: integer) :: :ok

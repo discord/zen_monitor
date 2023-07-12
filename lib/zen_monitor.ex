@@ -124,7 +124,7 @@ defmodule ZenMonitor do
   """
   @spec now() :: integer
   def now do
-    System.monotonic_time(:milliseconds)
+    System.monotonic_time(:millisecond)
   end
 
   @doc """
