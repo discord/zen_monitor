@@ -15,7 +15,7 @@ Add `ZenMonitor` to your dependencies
 ```elixir
 def deps do
   [
-    {:zen_monitor, "~> 1.1"}
+    {:zen_monitor, "~> 2.1.0"}
   ]
 end
 ```
